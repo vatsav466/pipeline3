@@ -1,44 +1,33 @@
-import pandas as pd
-import smtplib
-from email.message import EmailMessage
-import os
+name: Send SBI Book Report Email
 
-SBI_FILE = "data/sbi_statement.csv"
-BOOK_FILE = "data/book_statement.csv"
-OUTPUT_FILE = "data/SBI_BOOK_Concatenated_Output.csv"
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
-SENDER_EMAIL = os.environ["SENDER_EMAIL"]
-RECEIVER_EMAIL = os.environ["RECEIVER_EMAIL"]
-APP_PASSWORD = os.environ["EMAIL_APP_PASSWORD"]
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
 
-sbi = pd.read_csv(SBI_FILE)
-book = pd.read_csv(BOOK_FILE)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-sbi["source"] = "SBI"
-book["source"] = "BOOK"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-final_df = pd.concat([sbi, book], ignore_index=True)
-final_df.to_csv(OUTPUT_FILE, index=False)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
 
-msg = EmailMessage()
-msg["Subject"] = "SBI & Book Concatenated Report"
-msg["From"] = SENDER_EMAIL
-msg["To"] = RECEIVER_EMAIL
-
-msg.set_content(
-    "Hi,\n\nPlease find attached the SBI & Book concatenated report.\n\nRegards,\nSrivatsav"
-)
-
-with open(OUTPUT_FILE, "rb") as f:
-    msg.add_attachment(
-        f.read(),
-        maintype="text",
-        subtype="csv",
-        filename="SBI_BOOK_Concatenated_Output.csv"
-    )
-
-with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-    server.login(SENDER_EMAIL, APP_PASSWORD)
-    server.send_message(msg)
-
-print("✅ Email sent successfully")
+      - name: Run Python script
+        env:
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+        run: |
+          python scripts/generate_and_send_report.py
