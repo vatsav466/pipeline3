@@ -24,9 +24,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run Pytest
+    - name: Run Pytest (FIXED)
       run: |
-        pytest -v
+        python -m pytest -v
 
     - name: Generate CSV report
       run: |
@@ -43,7 +43,7 @@ jobs:
         body: |
           Hi,
 
-          The pytest tests passed successfully.
+          Pytest executed successfully.
           Please find the attached CSV report.
 
           Regards,
