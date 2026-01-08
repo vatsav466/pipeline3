@@ -1,4 +1,4 @@
-name: Send SBI Book Report Email
+name: Send SBI & Book Report Email
 
 on:
   workflow_dispatch:
